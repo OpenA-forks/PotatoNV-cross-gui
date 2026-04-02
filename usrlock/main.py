@@ -68,14 +68,22 @@ def flash_images(data: dict):
     ui.success("Bootloader uploaded.")
 
 
-def write_nvme(key: str):
+def write_nvme(key: str, fblock=None):
     m = hashlib.sha256()
     m.update(key.encode())
     fb = fastboot.Fastboot()
     fb.connect()
+    if fblock is not None:
+        fb.write_nvme("FBLOCK", fblock.encode())
+        ui.success("FBLOCK updated")
     fb.write_nvme("USRKEY", m.digest())
     fb.write_nvme("WVLOCK", key.encode())
     ui.success("Bootloader code updated")
+    if fblock is not None:
+        ui.info("Attempting OEM unlock + FRP erase before reboot...")
+        fb.oem_unlock(key)
+        fb.erase("frp")
+        fb.erase("userdata")
     ui.info("Rebooting device...")
     fb.reboot()
 
@@ -93,4 +101,4 @@ def main():
         flash_images(data)
 
     if not args.skip_write_key:
-        write_nvme(args.key)
+        write_nvme(args.key, fblock=args.fblock)
