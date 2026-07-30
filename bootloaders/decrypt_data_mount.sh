@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # patterns for search encryption params
 re_pat_1=',fileencryption=aes-256-xts:aes-256-cts'
@@ -6,18 +6,19 @@ re_pat_2=',encryptable=footer'
 
 # list of fstab files specified for target kirin cpu
 ven_stat=`cat /proc/mounts | grep /vendor`
-fstab_hi=`echo /vendor/etc/fstab.hi*`
+fstab_hi="$1"
 
-case $1 in
+case $fstab_hi in
 --help | -h)
 	echo ""
 	echo " Usage: decrypt_data_mount.sh [hiXXX|fstabXXXX|/path/to/fstab]"
 	echo ""
 	exit
 	;;
-*/*   ) fstab_hi="$1" ;;
-fstab*) fstab_hi="/vendor/etc/$1" ;;
-hi*   ) fstab_hi="/vendor/etc/fstab.$1" ;;
+""    ) fstab_hi=$(echo '/vendor/etc/fstab.hi'*) ;;
+fstab*) fstab_hi="/vendor/etc/$fstab_hi" ;;
+hi*   ) fstab_hi="/vendor/etc/fstab.$fstab_hi" ;;
+*/*   ) ;;
 *)
 	echo ""
 	echo "wrong argument [$1]"
